@@ -124,10 +124,7 @@ Enable in Streamlit sidebar to skip long rate limits for testing.
 
 ## 📄 License
 
-MIT License © 2025 — Built by [@Yaseen](https://github.com/YOUR_USERNAME)
+MIT License © 2025 — Built by [@Yaseen](https://github.com/Yaseen0309)
 
 ---
 
-## 👁️‍🗨️ Logo
-
-![InsightIQ Logo](https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/InsightIQ_logo_icon.png/240px-InsightIQ_logo_icon.png)
