@@ -1,0 +1,49 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+.env
+.env.*
+
+# Streamlit temp & logs
+.streamlit/
+
+# Uploaded or processed files
+temp/
+*.log
+
+# IDE / Editor folders
+.vscode/
+.idea/
+
+# OS / Misc files
+.DS_Store
+Thumbs.db
+
+# Jupyter/IPython
+.ipynb_checkpoints/
+*.ipynb
+
+# Mac/Linux user files
+*.swp
+*.swo
+
+# Reports/exports
+*.pdf
+*.xlsx
+*.csv
+*.docx
+
+# Exported artifacts
+*.png
+*.jpg
+*.jpeg
+*.svg
+*.gif
+
+# Dependency freeze
+Pipfile.lock
+poetry.lock

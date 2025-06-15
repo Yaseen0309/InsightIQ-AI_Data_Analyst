@@ -1,0 +1,10 @@
+streamlit
+pandas
+matplotlib
+seaborn
+together
+pytesseract
+pdfplumber
+python-docx
+Pillow
+python-dotenv
