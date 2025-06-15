@@ -3,7 +3,7 @@ import os
 import re
 import warnings
 import pandas as pd
-from together import Image
+from PIL import Image
 from modules.env_loader import load_environment
 load_environment()
 from modules import (
@@ -41,7 +41,7 @@ def main():
             return
 
         print("✅ Tabular dataset loaded successfully.")
-        #print("📊 Preview:\n", df.head())
+        print("📊 Preview:\n", df.head())
         #print("🧾 Summary:\n", df.describe(include='all'))
 
         df_summary = df.describe(include='all').to_string()

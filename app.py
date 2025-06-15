@@ -60,18 +60,36 @@ if uploaded_file:
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         if msg.get("type") == "text":
+            content = msg["content"]
             if msg["role"] == "user":
                 st.markdown(
                     f"""
-                    <div style='background: linear-gradient(to right, #667eea, #764ba2); color:white; padding:10px 15px;
+                    <div style='background: linear-gradient(to right, #667eea, #764ba2); color:white;
+                                padding:10px 15px;
                                 border-radius: 18px 0px 18px 18px;
-                                margin: 6px 0; max-width: 65%; margin-left:auto;
-                                text-align: left; box-shadow: 0 2px 6px rgba(0,0,0,0.2);'>
-                        {msg['content']}
+                                margin: 6px 0; max-width: 65%;
+                                word-wrap: break-word;
+                                overflow-wrap: break-word;
+                                text-align: left; box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+                                margin-left:auto;'>
+                        {content}
                     </div>
                     """, unsafe_allow_html=True)
             else:
-                st.markdown(msg["content"])
+                st.markdown(
+                    f"""
+                    <div style='background: var(--secondary-background-color); color:var(--text-color);
+                                padding:10px 15px;
+                                border-radius: 0px 18px 18px 18px;
+                                margin: 6px 0; max-width: 65%;
+                                word-wrap: break-word;
+                                overflow-wrap: break-word;
+                                text-align: left; box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+                                margin-right:auto;'>
+                        {content}
+                    </div>
+                    """, unsafe_allow_html=True)
+
         elif msg.get("type") == "dataframe":
             st.dataframe(msg["content"])
         elif msg.get("type") == "image":
@@ -107,7 +125,27 @@ if user_prompt and st.session_state.df is not None:
         with st.spinner("🤖 Thinking..."):
             start_time = time.time()
 
-            plot_keywords = ["plot", "chart", "graph", "visualize", "bar", "line", "scatter", "histogram", "pie"]
+            plot_keywords = [
+                "plot", "graph", "chart", "visualize", "visualisation", "visualization",
+                "line", "line chart", "line plot",
+                "bar", "bar chart", "bar graph",
+                "histogram", "hist", "distribution",
+                "scatter", "scatter plot",
+                "pie", "pie chart",
+                "box", "boxplot", "box plot",
+                "violin", "violin plot",
+                "area", "area chart", "area plot",
+                "heatmap", "heat map",
+                "density", "density plot", "kde",
+                "pairplot", "pair plot",
+                "countplot", "count plot",
+                "bubble", "bubble chart",
+                "donut", "donut chart",
+                "correlation", "correlation matrix",
+                "timeseries", "time series", "trend", "timeline",
+                "facet", "facet plot", "multiplot", "multiple plots", "subplots",
+                "map", "geoplot", "choropleth", "treemap", "sunburst",
+            ]
             is_plot = any(k in user_prompt.lower() for k in plot_keywords)
 
             if is_plot:

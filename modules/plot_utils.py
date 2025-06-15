@@ -73,7 +73,6 @@ agg: <aggregation or none>
 def handle_plot_query(query, df):
     chart_type, x_col, y_col, agg_func = extract_plot_info_from_llama(query, df.columns)
 
-    # Fallback chart type detection
     lowered_query = query.lower()
     if not chart_type:
         if "stacked" in lowered_query and "bar" in lowered_query:
@@ -88,38 +87,33 @@ def handle_plot_query(query, df):
 
     df_plot = df.copy()
 
-    # Ensure datetime is parsed for any time-aware plotting
-    if x_col and 'date' in x_col.lower():
+    # Ensure datetime is parsed for time plots
+    if x_col and 'date' in x_col.lower() and x_col in df_plot.columns:
         df_plot[x_col] = pd.to_datetime(df_plot[x_col], errors='coerce')
 
     plt.figure(figsize=(10, 6))
 
     try:
         if chart_type == 'stacked_bar':
-            if 'region' in df_plot.columns and 'category' in df_plot.columns and 'sales' in df_plot.columns:
+            if {'region', 'category', 'sales'}.issubset(df_plot.columns):
                 pivot_df = df_plot.pivot_table(index='region', columns='category', values='sales', aggfunc='sum').fillna(0)
                 pivot_df.plot(kind='bar', stacked=True)
             else:
                 return "❌ Required columns for stacked bar not found."
 
         elif chart_type == 'grouped_bar':
-            if 'region' in df_plot.columns and 'category' in df_plot.columns and 'sales' in df_plot.columns:
+            if {'region', 'category', 'sales'}.issubset(df_plot.columns):
                 pivot_df = df_plot.pivot_table(index='region', columns='category', values='sales', aggfunc='sum').fillna(0)
                 pivot_df.plot(kind='bar')
             else:
                 return "❌ Required columns for grouped bar not found."
 
         elif chart_type == 'line' and x_col and y_col and pd.api.types.is_datetime64_any_dtype(df_plot[x_col]):
-            df_plot[x_col] = pd.to_datetime(df_plot[x_col], errors='coerce')
             df_plot = df_plot.dropna(subset=[x_col, y_col])
-
-            # Group by month
             df_plot['period'] = df_plot[x_col].dt.to_period('M').dt.to_timestamp()
 
-            # Smart priority grouping
             group_col = None
-            priority_cols = ["region", "segment", "category", "ship_mode"]
-            for col in priority_cols:
+            for col in ["region", "segment", "category", "ship_mode"]:
                 if col in df_plot.columns and df_plot[col].nunique() <= 10:
                     group_col = col
                     break
@@ -140,7 +134,12 @@ def handle_plot_query(query, df):
                 plt.plot(summary['period'], summary[y_col], marker='o')
 
         elif chart_type == 'bar' and x_col and y_col:
-            sns.barplot(x=x_col, y=y_col, data=df_plot)
+            # Auto group if too many duplicates
+            if df_plot[x_col].nunique() < len(df_plot) * 0.5:
+                df_plot = df_plot.groupby(x_col)[y_col].sum().reset_index()
+
+            df_plot = df_plot.sort_values(by=y_col, ascending=False)
+            sns.barplot(x=x_col, y=y_col, data=df_plot, ci=None)
 
         elif chart_type == 'scatter' and x_col and y_col:
             plt.scatter(df_plot[x_col], df_plot[y_col])
@@ -156,14 +155,16 @@ def handle_plot_query(query, df):
             sns.violinplot(x=x_col, y=y_col, data=df_plot)
 
         elif chart_type == 'pie' and x_col and y_col:
-            df_plot.set_index(x_col)[y_col].plot.pie(autopct='%1.1f%%')
+            pie_df = df_plot.groupby(x_col)[y_col].sum().reset_index()
+            pie_df.set_index(x_col)[y_col].plot.pie(autopct='%1.1f%%', startangle=90)
+            plt.ylabel("")  # Remove y-label for pie chart
 
         else:
             return f"❌ Unsupported or unimplemented chart type: {chart_type}"
 
         plt.title(f'{chart_type.replace("_", " ").title()} Chart')
         if x_col: plt.xlabel(x_col)
-        if y_col: plt.ylabel(y_col)
+        if y_col and chart_type != 'pie': plt.ylabel(y_col)
         plt.xticks(rotation=45)
         plt.tight_layout()
         plt.grid(True)
@@ -171,7 +172,7 @@ def handle_plot_query(query, df):
         buf = BytesIO()
         plt.savefig(buf, format='png', bbox_inches='tight')
         buf.seek(0)
-        plt.close('all') 
+        plt.close('all')
         return buf
 
     except Exception as e:
